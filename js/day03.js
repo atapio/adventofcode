@@ -26,8 +26,8 @@ var houses = exports.houses = function(directions) {
         return houses;
     }
 
-    var currentLocation = [0, 0]
-        var visitedHouses = {};
+    var currentLocation = [0, 0];
+    var visitedHouses = {};
     addVisit(visitedHouses, currentLocation);
 
     for(i=0; i < directions.length; i++) {
@@ -38,8 +38,40 @@ var houses = exports.houses = function(directions) {
     return Object.keys(visitedHouses).length
 }
 
+var santaAndRobot = exports.santaAndRobot = function(directions) {
+    var addVisit = function(houses, loc) {
+        key =  loc[0] + '-' + loc[1];
+        if (houses[key]) {
+            houses[key] += 1;
+        } else {
+            houses[key] = 1;
+        };
+        return houses;
+    }
+
+    var santaLocation = [0, 0];
+    var roboLocation = [0, 0];
+    var visitedHouses = {};
+
+    addVisit(visitedHouses, santaLocation);
+    addVisit(visitedHouses, roboLocation);
+
+    for(i=0; i < directions.length; i++) {
+        if ( i % 2 == 0 ) {
+            santaLocation = move(directions.charAt(i), santaLocation);
+            addVisit(visitedHouses, santaLocation);
+        } else {
+            roboLocation = move(directions.charAt(i), roboLocation);
+            addVisit(visitedHouses, roboLocation);
+        }
+    }
+
+    return Object.keys(visitedHouses).length
+}
+
 var myAnswer = function(callback) {
     var houseCount = 0;
+    var santaAndRobotCount = 0;
 
     var rl = require('readline').createInterface({
         input: require('fs').createReadStream('day03.input')
@@ -47,10 +79,11 @@ var myAnswer = function(callback) {
 
     rl.on('line', function (line) {
         houseCount += houses(line);
+        santaAndRobotCount += santaAndRobot(line);
     });
 
     rl.on('close', function () {
-        callback([houseCount]);
+        callback([houseCount, santaAndRobotCount]);
     });
 }
 
