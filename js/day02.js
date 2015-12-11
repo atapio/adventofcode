@@ -1,4 +1,4 @@
-var wrappingPaper = exports.wrappingPaper = function(box) {
+var parseEdges = function(box) {
     var edges = box.split('x').map(function(item) {
         return parseInt(item);
     });
@@ -6,6 +6,12 @@ var wrappingPaper = exports.wrappingPaper = function(box) {
     edges = edges.sort(function(a,b) {
         return a-b;
     });
+
+    return edges;
+}
+
+var wrappingPaper = exports.wrappingPaper = function(box) {
+    var edges = parseEdges(box);
 
     var sides = [edges[0] * edges[1], edges[0] * edges[2], edges[1] * edges[2]]
 
@@ -17,19 +23,30 @@ var wrappingPaper = exports.wrappingPaper = function(box) {
 
 }
 
+var ribbon = exports.ribbon = function(box) {
+    var edges = parseEdges(box);
+
+    return 2 * (edges[0] + edges[1]) + edges.reduce(function(previousValue, currentValue, currentIndex, array) {
+        return previousValue * currentValue;
+    });
+
+}
+
 var myAnswer = function(callback) {
-    var area = 0;
+    var requiredPaper = 0;
+    var requiredRibbon = 0;
 
     var rl = require('readline').createInterface({
         input: require('fs').createReadStream('day02.input')
     });
 
     rl.on('line', function (line) {
-        area += wrappingPaper(line);
+        requiredPaper += wrappingPaper(line);
+        requiredRibbon += ribbon(line);
     });
 
     rl.on('close', function () {
-        callback(area);
+        callback([requiredPaper, requiredRibbon]);
     });
 }
 

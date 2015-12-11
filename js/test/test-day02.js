@@ -7,3 +7,9 @@ exports.testWrappingPaper = function(test){
     test.done();
 };
 
+exports.testRibbon = function(test){
+    test.expect(2);
+    test.equal(day02.ribbon("2x3x4"), 34)
+    test.equal(day02.ribbon("1x1x10"), 14)
+    test.done();
+};
