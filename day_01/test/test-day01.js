@@ -14,3 +14,9 @@ exports.testFloor = function(test){
     test.done();
 };
 
+exports.testEnterBasement = function(test){
+    test.expect(2);
+    test.equal(day01.floor(")", true), 1)
+    test.equal(day01.floor("()())", true), 5)
+    test.done();
+}
