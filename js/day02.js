@@ -21,7 +21,7 @@ var myAnswer = function(callback) {
     var area = 0;
 
     var rl = require('readline').createInterface({
-        input: require('fs').createReadStream('day02-1.input')
+        input: require('fs').createReadStream('day02.input')
     });
 
     rl.on('line', function (line) {
