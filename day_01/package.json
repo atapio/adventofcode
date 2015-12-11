@@ -1,0 +1,3 @@
+{ "name" : "adventofcode-day01"
+, "version" : "1.0.0"
+, "dependencies" : { "nodeunit" : "0.9.1" } }
