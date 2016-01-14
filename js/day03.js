@@ -13,7 +13,7 @@ var myAnswer = function(callback) {
     santaAndRobotCount += day03.santaAndRobot(line);
   });
 
-  rl.on('close ', function() {
+  rl.on('close', function() {
     callback([houseCount, santaAndRobotCount]);
   });
 }
