@@ -1,3 +1,27 @@
-{ "name" : "adventofcode-day01"
-, "version" : "1.0.0"
-, "dependencies" : { "nodeunit" : "0.9.1" } }
+{
+  "name": "adventofcode",
+  "version": "1.0.0",
+  "dependencies": {
+    "js-md5": "^0.4.0",
+    "nodeunit": "0.9.1"
+  },
+  "main": "day01.js",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node_modules/nodeunit/bin/nodeunit test/test-*.js"
+  },
+  "author": "Antti Tapio",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atapio/adventofcode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atapio/adventofcode/issues"
+  },
+  "homepage": "https://github.com/atapio/adventofcode#readme",
+  "description": ""
+}
