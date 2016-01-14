@@ -1,4 +1,4 @@
-var day04 = require("../day04");
+var day04 = require("../lib/day04");
 
 exports.testCheckHash = function(test) {
   test.expect(4);
