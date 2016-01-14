@@ -38,6 +38,20 @@ var hasIllegalSubStrings = exports.hasIllegalSubStrings = function(str) {
   return found;
 };
 
+var hasPairOfTwoLetters = exports.hasPairOfTwoLetters = function(str) {
+  var re = /(\w\w).*\1/;
+  return re.test(str);
+};
+
+var hasLetterThatRepeatsAfterAChar = exports.hasLetterThatRepeatsAfterAChar = function(str) {
+  var re = /(\w)\w\1/;
+  return re.test(str);
+};
+
 var isNiceString = exports.isNiceString = function(str) {
   return hasAtLeastThreeVowels(str) && hasALetterTwiceInARow(str) && !hasIllegalSubStrings(str);
-}
+};
+
+var isNiceStringPartTwo = exports.isNiceStringPartTwo = function(str) {
+  return hasPairOfTwoLetters(str) && hasLetterThatRepeatsAfterAChar(str);
+};
