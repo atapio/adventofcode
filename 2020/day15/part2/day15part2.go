@@ -5,13 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 )
-
-var maskFormat = regexp.MustCompile(`^mask = (?P<Value>[X01]+)$`)
-var instructionFormat = regexp.MustCompile(`^mem\[(?P<Address>\d+)\] = (?P<Value>\d+)$`)
 
 type Game struct {
 	Numbers    map[int][]int
