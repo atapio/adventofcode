@@ -1,0 +1,6 @@
+{
+    "go.languageServerFlags": [
+
+    ],
+    "go.testTimeout": "5s"
+}
