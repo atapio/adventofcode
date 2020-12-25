@@ -37,26 +37,8 @@ func (p *PKI) DetermineLoopSize(subject int) {
 	}
 }
 
-// return list of primes less than N
-func sieveOfEratosthenes(N int) (primes []int) {
-	b := make([]bool, N)
-	for i := 2; i < N; i++ {
-		if b[i] == true {
-			continue
-		}
-		primes = append(primes, i)
-		for k := i * i; k < N; k += i {
-			b[k] = true
-		}
-	}
-	return
-}
-
 func findAnswer(lines []string) (int, error) {
 	answer := 0
-	log.Printf("generating primes")
-	primes := sieveOfEratosthenes(100000000)
-	log.Printf("generation done %d", len(primes))
 
 	cardPubKey, err := strconv.Atoi(lines[0])
 	if err != nil {
@@ -71,26 +53,8 @@ func findAnswer(lines []string) (int, error) {
 	door := PKI{publicKey: doorPubKey}
 
 	card.DetermineLoopSize(7)
-	/*
-		for card.Transform(7) != card.publicKey {
-			card.loopSize++
-		}
-	*/
 
 	log.Printf("card: %v", card)
-
-	/*
-		prime := 0
-		for door.Transform(7) != door.publicKey {
-
-			if prime%1000 == 0 {
-				log.Printf("prime %d %d", prime, primes[prime])
-			}
-
-			door.loopSize = primes[prime]
-			prime++
-		}
-	*/
 
 	door.DetermineLoopSize(7)
 	log.Printf("door: %v", door)
