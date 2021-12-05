@@ -10,107 +10,207 @@ import (
 	"strings"
 )
 
-var commandFormat = regexp.MustCompile(`^(turn on|toggle|turn off) (\d+,\d+) through (\d+,\d+)$`)
+const Mask uint = 65535
 
-type Coordinate struct {
-	x int
-	y int
+var connectionFormat = regexp.MustCompile(`^(.*) -> ([a-z]+)$`)
+
+type Gate interface {
+	Signal(left, right uint) (uint, error)
 }
 
-func (c Coordinate) PointsIn(other Coordinate) []Coordinate {
-	points := []Coordinate{}
-	for x := c.x; x <= other.x; x++ {
-		for y := c.y; y <= other.y; y++ {
-			points = append(points, Coordinate{x, y})
+type InputGate struct {
+	value uint
+}
+
+func (i InputGate) Signal(left, right uint) (uint, error) {
+	if left != 0 || right != 0 {
+		return 0, fmt.Errorf("input gate, no inputs allowed")
+	}
+	return i.value, nil
+}
+
+type XORGate struct {
+}
+
+func (_ XORGate) Signal(left, right uint) (uint, error) {
+	if left != 0 {
+		return 0, fmt.Errorf("unary gate, got %d", left)
+	}
+
+	return Mask ^ right, nil
+}
+
+type ANDGate struct {
+}
+
+func (_ ANDGate) Signal(left, right uint) (uint, error) {
+	return left & right, nil
+}
+
+type ORGate struct {
+}
+
+func (_ ORGate) Signal(left, right uint) (uint, error) {
+	return left | right&Mask, nil
+}
+
+type LSHIFTGate struct {
+}
+
+func (_ LSHIFTGate) Signal(left, right uint) (uint, error) {
+	return left << right & Mask, nil
+}
+
+type RSHIFTGate struct {
+}
+
+func (_ RSHIFTGate) Signal(left, right uint) (uint, error) {
+	return left >> right & Mask, nil
+}
+
+type Circuit struct {
+	wires map[string]uint
+}
+
+func NewCircuit() *Circuit {
+	return &Circuit{
+		wires: map[string]uint{},
+	}
+}
+
+func (c *Circuit) Process(inputs []string) ([]string, error) {
+	remaining := []string{}
+
+	for _, input := range inputs {
+		fmt.Printf("wires: %v\n", c.wires)
+		fmt.Printf("%s: ", input)
+		m := connectionFormat.FindStringSubmatch(input)
+
+		cmdStr, to := m[1], m[2]
+
+		cmd := strings.Fields(cmdStr)
+		fmt.Printf("cmd: %v\n", cmd)
+
+		if len(cmd) == 1 {
+			l, err := strconv.Atoi(cmd[0])
+			left := uint(l)
+			if err != nil {
+				l, ok := c.wires[cmd[0]]
+				if !ok {
+					remaining = append(remaining, input)
+					continue
+				}
+				left = l
+			}
+
+			o, err := InputGate{value: left}.Signal(0, 0)
+			if err != nil {
+				return remaining, err
+			}
+			c.wires[to] = o
+			if to == "b" {
+				c.wires[to] = 3176
+			}
+			continue
+		}
+
+		switch cmd[0] {
+		case "NOT":
+			if val, ok := c.wires[cmd[1]]; ok {
+				o, err := XORGate{}.Signal(0, val)
+				if err != nil {
+					return remaining, err
+				}
+				c.wires[to] = o
+			} else {
+				remaining = append(remaining, input)
+				continue
+			}
+		default:
+			{
+				l, err := strconv.Atoi(cmd[0])
+				left := uint(l)
+				if err != nil {
+					l, ok := c.wires[cmd[0]]
+					if !ok {
+						remaining = append(remaining, input)
+						continue
+					}
+					left = l
+				}
+
+				r, err := strconv.Atoi(cmd[2])
+				right := uint(r)
+				if err != nil {
+					r, ok := c.wires[cmd[2]]
+					if !ok {
+						remaining = append(remaining, input)
+						continue
+					}
+					right = r
+				}
+
+				switch cmd[1] {
+				case "AND":
+					o, err := ANDGate{}.Signal(left, right)
+					if err != nil {
+						return remaining, err
+					}
+					c.wires[to] = o
+				case "OR":
+					o, err := ORGate{}.Signal(left, right)
+					if err != nil {
+						return remaining, err
+					}
+					c.wires[to] = o
+				case "LSHIFT":
+					o, err := LSHIFTGate{}.Signal(left, right)
+					if err != nil {
+						return remaining, err
+					}
+					c.wires[to] = o
+				case "RSHIFT":
+					o, err := RSHIFTGate{}.Signal(left, right)
+					if err != nil {
+						return remaining, err
+					}
+					c.wires[to] = o
+				default:
+					return remaining, fmt.Errorf("unknown command %s", cmdStr)
+				}
+			}
 		}
 	}
-	return points
+
+	return remaining, nil
 }
 
-func ParseCoordinate(input string) (Coordinate, error) {
-	xy := strings.Split(input, ",")
+func findAnswer(lines []string) (map[string]uint, error) {
+	circuit := NewCircuit()
 
-	x, err := strconv.Atoi(xy[0])
+	prevCount := 0
+	loopCount := 0
+
+	remaining, err := circuit.Process(lines)
 	if err != nil {
-		return Coordinate{}, err
-	}
-	y, err := strconv.Atoi(xy[1])
-	if err != nil {
-		return Coordinate{}, err
+		return map[string]uint{}, err
 	}
 
-	return Coordinate{x, y}, nil
-
-}
-
-type Grid struct {
-	lights map[Coordinate]int
-}
-
-func NewGrid() *Grid {
-	return &Grid{lights: map[Coordinate]int{}}
-}
-
-func (g *Grid) TurnOn(c1 Coordinate, c2 Coordinate) {
-	for _, l := range c1.PointsIn(c2) {
-		g.lights[l]++
-	}
-}
-
-func (g *Grid) TurnOff(c1 Coordinate, c2 Coordinate) {
-	for _, l := range c1.PointsIn(c2) {
-		g.lights[l]--
-		if g.lights[l] < 0 {
-			g.lights[l] = 0
+	for len(remaining) > 0 {
+		loopCount++
+		fmt.Printf("loop: %d\n", loopCount)
+		if len(remaining) == prevCount {
+			//fmt.Printf("remaining: %v", remaining)
+			return map[string]uint{}, fmt.Errorf("no new lines processed")
 		}
-	}
-}
-
-func (g *Grid) Toggle(c1 Coordinate, c2 Coordinate) {
-	for _, l := range c1.PointsIn(c2) {
-		g.lights[l] += 2
-	}
-}
-
-func (g Grid) LightsOn() int {
-	count := 0
-	for _, b := range g.lights {
-		count += b
-	}
-	return count
-}
-
-func findAnswer(lines []string) (int, error) {
-	answer := 0
-	grid := NewGrid()
-
-	for _, line := range lines {
-		m := commandFormat.FindStringSubmatch(line)
-
-		cmd, from, to := m[1], m[2], m[3]
-
-		c1, err := ParseCoordinate(from)
+		prevCount = len(remaining)
+		remaining, err = circuit.Process(remaining)
 		if err != nil {
-			return 0, err
-		}
-		c2, err := ParseCoordinate(to)
-		if err != nil {
-			return 0, err
-		}
-
-		switch cmd {
-		case "turn on":
-			grid.TurnOn(c1, c2)
-		case "turn off":
-			grid.TurnOff(c1, c2)
-		case "toggle":
-			grid.Toggle(c1, c2)
+			return map[string]uint{}, err
 		}
 	}
 
-	answer = grid.LightsOn()
-
-	return answer, nil
+	return circuit.wires, nil
 }
 
 func parseFile(filename string) ([]string, error) {
@@ -135,7 +235,7 @@ func parseFile(filename string) ([]string, error) {
 }
 
 func main() {
-	input, err := parseFile("input.txt")
+	input, err := parseFile("input")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -145,5 +245,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("answer: %d\n", answer)
+	fmt.Printf("answer: %v\n", answer)
 }

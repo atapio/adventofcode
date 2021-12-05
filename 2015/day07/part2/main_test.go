@@ -14,21 +14,20 @@ func TestFindAnswer(t *testing.T) {
 		Name  string
 		Input []string
 
-		Expected int
+		Expected map[string]uint
 	}{
 		{
 			Name: "example1",
-			Input: []string{
-				"turn on 0,0 through 0,0",
+			Expected: map[string]uint{
+				"d": 72,
+				"e": 507,
+				"f": 492,
+				"g": 114,
+				"h": 65412,
+				"i": 65079,
+				"x": 123,
+				"y": 456,
 			},
-			Expected: 1,
-		},
-		{
-			Name: "example2",
-			Input: []string{
-				"toggle 0,0 through 999,999",
-			},
-			Expected: 2000000,
 		},
 	}
 
@@ -40,7 +39,7 @@ func TestFindAnswer(t *testing.T) {
 
 			if len(input) == 0 {
 				var err error
-				input, err = parseFile(fmt.Sprintf("%s.txt", tc.Name))
+				input, err = parseFile(fmt.Sprintf("../%s.txt", tc.Name))
 				require.NoError(t, err)
 			}
 
