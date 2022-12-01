@@ -19,23 +19,12 @@ impl Elves {
             elf += line.parse::<u32>().unwrap();
         }
         self.elves.push(elf);
+
+        self.elves.sort_unstable();
     }
 
-    fn with_max_calories(&self) -> (usize, u32) {
-        let mut idx = 0;
-        let mut max = 0;
-        for (i, cal) in self.elves.iter().enumerate() {
-            if cal > &max {
-                max = *cal;
-                idx = i;
-            }
-        }
-
-        return (idx, max);
-    }
-
-    fn max_calories(&self) -> u32 {
-        return self.with_max_calories().1;
+    fn sum_of_max_calories(self, n: usize) -> u32 {
+        return self.elves[self.elves.len() - n..].iter().sum();
     }
 }
 
@@ -43,21 +32,13 @@ impl Problem for Day01 {
     fn part_one(&self, input: &str) -> String {
         let mut elves = Elves { elves: vec![] };
         elves.parse(input);
-        return elves.max_calories().to_string();
+        return elves.sum_of_max_calories(1).to_string();
     }
 
     fn part_two(&self, input: &str) -> String {
         let mut elves = Elves { elves: vec![] };
         elves.parse(input);
-        let mut max = 0;
-
-        for _ in 1..4 {
-            let (i, cal) = elves.with_max_calories();
-            max += cal;
-            elves.elves.remove(i);
-        }
-
-        return max.to_string();
+        return elves.sum_of_max_calories(3).to_string();
     }
 }
 
