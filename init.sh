@@ -13,7 +13,7 @@ year=$1
 day=$2
 zday=$(printf "%02d" ${day})
 
-dir="input/${year}/day${zday}"
+dir="input/${year}/${zday}"
 
 mkdir -p "${dir}"
 
