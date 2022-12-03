@@ -14,7 +14,20 @@ impl Problem for Day03 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let priority = self
+            .parse(input)
+            .chunks(3)
+            .fold(0, |total_priority, sacks| {
+                total_priority
+                    + sacks
+                        .iter()
+                        .fold(String::from(""), |items, sack| {
+                            shared_items(&items, sack.items.as_str())
+                        })
+                        .chars()
+                        .fold(0, |total_priority, s| total_priority + priority(s))
+            });
+        format!("{}", priority)
     }
 }
 
@@ -60,6 +73,16 @@ fn priority(c: char) -> u32 {
     return c as u32 - 'a' as u32 + 1;
 }
 
+fn shared_items(first: &str, second: &str) -> String {
+    if first.len() == 0 {
+        return String::from(second);
+    }
+    let a: HashSet<char> = first.chars().collect();
+    let b: HashSet<char> = second.chars().collect();
+    let intersection = a.intersection(&b);
+    return intersection.collect();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -80,7 +103,7 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
     #[test]
     fn test_part2() {
         let p = Day03 {};
-        // assert_eq!(p.part_two(INPUT), "12");
+        assert_eq!(p.part_two(INPUT), "70");
     }
 
     #[test]
