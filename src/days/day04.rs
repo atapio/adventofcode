@@ -13,7 +13,11 @@ impl Problem for Day04 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let count = self.parse(input).iter().fold(0, |total, pair| {
+            // println!("{:?} {}", pair, pair.has_overlap());
+            total + pair.has_overlap() as u32
+        });
+        format!("{}", count)
     }
 }
 
@@ -39,6 +43,9 @@ impl Pair {
     fn fully_contained(&self) -> bool {
         (self.s1 <= self.s2 && self.e1 >= self.e2) || (self.s2 <= self.s1 && self.e2 >= self.e1)
     }
+    fn has_overlap(&self) -> bool {
+        (self.e1 >= self.s2 && self.s1 <= self.s2) || (self.e2 >= self.s1 && self.s2 <= self.s1)
+    }
 }
 
 #[cfg(test)]
@@ -55,5 +62,11 @@ mod tests {
     fn test_part1() {
         let p = Day04 {};
         assert_eq!(p.part_one(INPUT), "2");
+    }
+
+    #[test]
+    fn test_part2() {
+        let p = Day04 {};
+        assert_eq!(p.part_two(INPUT), "4");
     }
 }

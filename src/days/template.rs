@@ -15,4 +15,17 @@ impl Problem for DayXX {
 #[cfg(test)]
 mod tests {
     use super::*;
+    const INPUT: &str = "";
+
+    #[test]
+    fn test_part1() {
+        let p = Day04 {};
+        assert_eq!(p.part_one(INPUT), "todo");
+    }
+
+    #[test]
+    fn test_part2() {
+        let p = Day04 {};
+        assert_eq!(p.part_two(INPUT), "todo");
+    }
 }
