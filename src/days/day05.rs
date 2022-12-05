@@ -28,7 +28,15 @@ impl Problem for Day05 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        match self.parse(input) {
+            Ok((_, (mut stacks, instructions))) => {
+                for i in instructions {
+                    stacks.execute_many(&i);
+                }
+                format!("{}", stacks.top())
+            }
+            Err(e) => format!("Error: {:?}", e),
+        }
     }
 }
 
@@ -136,6 +144,23 @@ impl Stacks {
         }
     }
 
+    fn execute_many(&mut self, instruction: &Instruction) {
+        let mut crates: Vec<char> = vec![];
+        {
+            let from = &mut self.stacks[instruction.from as usize - 1];
+
+            for _ in 0..instruction.count {
+                crates.insert(0, from.items.pop().expect("empty stack"));
+            }
+        }
+
+        let to = &mut self.stacks[instruction.to as usize - 1];
+
+        for c in crates {
+            to.items.push(c);
+        }
+    }
+
     fn top(&self) -> String {
         self.stacks.iter().fold("".to_string(), |crates, c| {
             format!("{}{}", crates, c.items.last().expect("empty"))
@@ -209,7 +234,7 @@ move 1 from 1 to 2
     #[test]
     fn test_part2() {
         let p = Day05 {};
-        assert_eq!(p.part_two(INPUT), "todo");
+        assert_eq!(p.part_two(INPUT), "MCD");
     }
 
     #[test]
