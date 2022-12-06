@@ -19,13 +19,13 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let p = Day04 {};
+        let p = DayXX {};
         assert_eq!(p.part_one(INPUT), "todo");
     }
 
     #[test]
     fn test_part2() {
-        let p = Day04 {};
+        let p = DayXX {};
         assert_eq!(p.part_two(INPUT), "todo");
     }
 }
