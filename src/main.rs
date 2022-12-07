@@ -4,6 +4,7 @@ use adventofcode::days::day03::Day03;
 use adventofcode::days::day04::Day04;
 use adventofcode::days::day05::Day05;
 use adventofcode::days::day06::Day06;
+use adventofcode::days::day07::Day07;
 use adventofcode::problem::Problem;
 
 use clap::Parser;
@@ -24,6 +25,7 @@ fn day_to_problem(day: u8) -> Option<Box<dyn Problem>> {
         4 => Some(Box::new(Day04 {})),
         5 => Some(Box::new(Day05 {})),
         6 => Some(Box::new(Day06 {})),
+        7 => Some(Box::new(Day07 {})),
         // ...
         _ => None,
     }
