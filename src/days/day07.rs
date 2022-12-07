@@ -7,9 +7,8 @@ use nom::{
     combinator::recognize,
     multi::{many1, separated_list0},
     sequence::{delimited, preceded, tuple},
-    Err as NomError, IResult,
+    IResult,
 };
-use parse_display::IntoResult;
 
 use crate::problem::Problem;
 
@@ -32,7 +31,31 @@ impl Problem for Day07 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let cwd = &mut Cwd::init();
+
+        Self::parse(cwd, input);
+        let root_size = cwd.get_root().size();
+        let used_space = 70000000 - root_size;
+        // println!("root: {} used space: {}", root_size, used_space);
+        let needed_space = 30000000 - used_space;
+
+        let deleted_dir_size = cwd.get_root().dirs().iter().fold(0, |smallest, d| {
+            if smallest == 0 {
+                return d.size();
+            }
+
+            let size = d.size();
+
+            if size < needed_space {
+                return smallest;
+            }
+            if size > smallest {
+                return smallest;
+            }
+            return size;
+        });
+
+        format!("{}", deleted_dir_size)
     }
 }
 
@@ -55,24 +78,13 @@ impl Day07 {
                         }
                     }
                     remaining_input = next_input;
-                    println!(
-                        "cwd: {} {:?}",
-                        cwd.current().unwrap().name,
-                        cwd.current().unwrap().children,
-                    );
                 }
                 Err(e1) => match cmd_ls(remaining_input) {
                     Ok((next_input, entries)) => {
                         for entry in entries {
-                            println!("Entry: {}", entry.name);
                             cwd.current_mut().unwrap().add(entry.clone());
                         }
                         remaining_input = next_input;
-                        println!(
-                            "dir: {} {:?}",
-                            cwd.current().unwrap().name,
-                            cwd.current().unwrap().children,
-                        );
                     }
                     Err(e2) => {
                         panic!(
@@ -83,6 +95,9 @@ impl Day07 {
                 },
             }
         }
+        // Terrible hack
+        // update last dir entry to parent
+        cwd.parent();
     }
 }
 
@@ -172,16 +187,6 @@ impl Cwd {
     fn current(&self) -> Option<&DirEntry> {
         self.path.last()
     }
-
-    // fn ls(&self) {
-    //     for e in self.path.last().iter() {
-    //         if e.is_dir {
-    //             println!("dir {}", e.name);
-    //         } else {
-    //             println!("{} {}", e.size, e.name);
-    //         }
-    //     }
-    // }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -247,10 +252,8 @@ impl DirEntry {
         if self.is_dir {
             dirs.push(self);
             for child in &self.child_entries {
-                println!("child: {:?}", child.name);
                 dirs.extend(child.dirs().iter());
             }
-            println!("{:?}: {:?}", self.name, dirs);
         }
         dirs
     }
@@ -303,5 +306,11 @@ $ ls
             direntry("14848514 b.txt"),
             Ok(("", DirEntry::file("b.txt", 14848514)))
         );
+    }
+    #[test]
+    fn test_size() {
+        let cwd = &mut Cwd::init();
+        Day07::parse(cwd, INPUT);
+        assert_eq!(cwd.get_root().size(), 48381165);
     }
 }
