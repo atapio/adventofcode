@@ -9,7 +9,8 @@ impl Problem for Day08 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let grid = Self::parse(input);
+        format!("{}", Self::max_scenic_score(&grid))
     }
 }
 
@@ -45,7 +46,7 @@ impl Day08 {
             for x in 1..grid.width - 1 {
                 let height = grid.get(x, y);
                 if height > max_height {
-                    println!("{} {} {} {}", y, x, height, max_height);
+                    // println!("{} {} {} {}", y, x, height, max_height);
                     visible.set(x, y, height);
                     max_height = height;
                 }
@@ -57,7 +58,7 @@ impl Day08 {
             for x in (1..grid.width - 1).rev() {
                 let height = grid.get(x, y);
                 if height > max_height {
-                    println!("{} {} {} {}", y, x, height, max_height);
+                    // println!("{} {} {} {}", y, x, height, max_height);
                     visible.set(x, y, height);
                     max_height = height;
                 }
@@ -69,7 +70,7 @@ impl Day08 {
             for y in 1..grid.height - 1 {
                 let height = grid.get(x, y);
                 if height > max_height {
-                    println!("{} {} {} {}", y, x, height, max_height);
+                    // println!("{} {} {} {}", y, x, height, max_height);
                     visible.set(x, y, height);
                     max_height = height;
                 }
@@ -81,7 +82,7 @@ impl Day08 {
             for y in (1..grid.height - 1).rev() {
                 let height = grid.get(x, y);
                 if height > max_height {
-                    println!("{} {} {} {}", y, x, height, max_height);
+                    // println!("{} {} {} {}", y, x, height, max_height);
                     visible.set(x, y, height);
                     max_height = height;
                 }
@@ -89,6 +90,88 @@ impl Day08 {
         }
 
         return edges + visible.count(1);
+    }
+
+    fn max_scenic_score(grid: &Grid) -> u32 {
+        let mut max_score = 0;
+        for y in 1..grid.height - 1 {
+            for x in 1..grid.width - 1 {
+                let score = Self::scenic_score(grid, x, y);
+                if score > max_score {
+                    max_score = score;
+                }
+            }
+        }
+
+        max_score
+    }
+
+    fn scenic_score(grid: &Grid, tree_x: usize, tree_y: usize) -> u32 {
+        let mut left = 0;
+        let mut right = 0;
+        let mut up = 0;
+        let mut down = 0;
+
+        let tree_height = grid.get(tree_x, tree_y);
+        // println!("tree: {} {} {}", tree_x, tree_y, tree_height);
+
+        // looking right
+        for x in tree_x + 1..grid.width {
+            right += 1;
+            // println!(
+            //     "right: x:{} y:{} count: {} height: {} tree: {}",
+            //     x,
+            //     tree_y,
+            //     left,
+            //     grid.get(x, tree_y),
+            //     tree_height,
+            // );
+            if grid.get(x, tree_y) >= tree_height {
+                break;
+            }
+        }
+        // looking left
+        for x in (0..tree_x).rev() {
+            left += 1;
+            // println!(
+            //     "left: x:{} y:{} count: {} height: {} tree: {}",
+            //     x,
+            //     tree_y,
+            //     left,
+            //     grid.get(x, tree_y),
+            //     tree_height,
+            // );
+            if grid.get(x, tree_y) >= tree_height {
+                break;
+            }
+        }
+        // looking down
+        for y in tree_y + 1..grid.height {
+            down += 1;
+            if grid.get(tree_x, y) >= tree_height {
+                break;
+            }
+        }
+        // looking up
+        for y in (0..tree_y).rev() {
+            up += 1;
+            if grid.get(tree_x, y) >= tree_height {
+                break;
+            }
+        }
+
+        // println!(
+        //     "x {} y {}: {} left {} right {} up {} down {}",
+        //     tree_x,
+        //     tree_y,
+        //     left * right * up * down,
+        //     left,
+        //     right,
+        //     up,
+        //     down
+        // );
+
+        return left * right * up * down;
     }
 }
 
@@ -149,6 +232,6 @@ mod tests {
     #[test]
     fn test_part2() {
         let p = Day08 {};
-        assert_eq!(p.part_two(INPUT), "todo");
+        assert_eq!(p.part_two(INPUT), "8");
     }
 }
