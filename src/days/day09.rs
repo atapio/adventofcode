@@ -1,5 +1,8 @@
 use parse_display::{Display, FromStr};
-use std::{collections::HashMap, default};
+use std::{
+    collections::{HashMap, VecDeque},
+    ops,
+};
 
 use crate::problem::Problem;
 
@@ -8,13 +11,13 @@ pub struct Day09 {}
 impl Problem for Day09 {
     fn part_one(&self, input: &str) -> String {
         let mut grid = SparseGrid::<u8>::new();
-        let mut snake = Snake::new();
+        let mut snake = Snake::new(2);
         grid.set(snake.tail_pos(), 1);
         for m in self.parse(input) {
             let mut left = m.steps;
+            //println!("move: {:?}", m);
             while left > 0 {
                 snake.step(&m.direction);
-                println!("{:?} {:?}", snake.head, snake.tail_pos());
                 grid.set(snake.tail_pos(), 1);
                 left -= 1;
             }
@@ -26,7 +29,22 @@ impl Problem for Day09 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let mut grid = SparseGrid::<u8>::new();
+        let mut snake = Snake::new(10);
+        grid.set(snake.tail_pos(), 1);
+        for m in self.parse(input) {
+            let mut left = m.steps;
+            //println!("move: {:?}", m);
+            while left > 0 {
+                snake.step(&m.direction);
+                grid.set(snake.tail_pos(), 1);
+                left -= 1;
+            }
+        }
+
+        let total = grid.iter().fold(0, |sum, _| sum + 1);
+
+        format!("{}", total)
     }
 }
 
@@ -41,61 +59,82 @@ impl Day09 {
 
 #[derive(Debug)]
 struct Snake {
-    // absolute coordinate
-    head: Coordinate,
-    // relative to head
-    tail: Coordinate,
+    knots: VecDeque<Point>,
 }
 impl Snake {
-    fn new() -> Snake {
-        Snake {
-            head: Coordinate { x: 0, y: 0 },
-            tail: Coordinate { x: 0, y: 0 },
+    fn new(len: usize) -> Snake {
+        let mut s = Snake {
+            knots: VecDeque::with_capacity(len),
+        };
+        for _ in 0..len {
+            s.knots.push_back(Point { x: 0, y: 0 });
         }
+        s
     }
-    fn tail_pos(&self) -> Coordinate {
-        Coordinate {
-            x: self.head.x + self.tail.x,
-            y: self.head.y + self.tail.y,
-        }
+    fn tail_pos(&self) -> Point {
+        self.knots.back().unwrap().clone()
     }
 
     fn step(&mut self, dir: &Direction) {
+        self.step_head(dir);
+        self.step_knots();
+    }
+
+    fn step_head(&mut self, dir: &Direction) {
+        let head = self.knots.front_mut().unwrap();
+
         match dir {
             Direction::U => {
-                self.head.y += 1;
-                self.tail.y -= 1;
+                head.y += 1;
             }
             Direction::D => {
-                self.head.y -= 1;
-                self.tail.y += 1;
+                head.y -= 1;
             }
             Direction::R => {
-                self.head.x += 1;
-                self.tail.x -= 1;
+                head.x += 1;
             }
             Direction::L => {
-                self.head.x -= 1;
-                self.tail.x += 1;
+                head.x -= 1;
             }
         }
+    }
 
-        if !(self.tail.x >= -1 && self.tail.x <= 1 && self.tail.y >= -1 && self.tail.y <= 1) {
-            self.tail = match self.tail {
-                Coordinate { x: 2, y: 0 } => Coordinate { x: 1, y: 0 },
-                Coordinate { x: -2, y: 0 } => Coordinate { x: -1, y: 0 },
-                Coordinate { x: 0, y: 2 } => Coordinate { x: 0, y: 1 },
-                Coordinate { x: 0, y: -2 } => Coordinate { x: 0, y: -1 },
-                Coordinate { x: 2, y: 1 } => Coordinate { x: 1, y: 0 },
-                Coordinate { x: -2, y: 1 } => Coordinate { x: -1, y: 0 },
-                Coordinate { x: 2, y: -1 } => Coordinate { x: 1, y: 0 },
-                Coordinate { x: -2, y: -1 } => Coordinate { x: -1, y: 0 },
-                Coordinate { x: 1, y: 2 } => Coordinate { x: 0, y: 1 },
-                Coordinate { x: 1, y: -2 } => Coordinate { x: 0, y: -1 },
-                Coordinate { x: -1, y: 2 } => Coordinate { x: 0, y: 1 },
-                Coordinate { x: -1, y: -2 } => Coordinate { x: 0, y: -1 },
-                _ => panic!("unsupported tail position: {:?}", self.tail),
-            };
+    fn step_knots(&mut self) {
+        for i in 1..self.knots.len() {
+            let head = self.knots.get(i - 1).unwrap().clone();
+            let knot = self.knots.get(i).unwrap().clone();
+
+            let diff = knot.clone() - &head;
+
+            if diff.x >= -1 && diff.x <= 1 && diff.y >= -1 && diff.y <= 1 {
+                //let knot_mut = self.knots.get_mut(i).unwrap();
+                //*knot_mut = diff.clone() + &head;
+                //println!("i: {} diff: {:?} knot: {:?}", i, diff, *knot_mut);
+                //println!("i: {} diff: {:?} knot: {:?}", i, diff, knot);
+            } else {
+                let delta = match diff {
+                    Point { x: 2, y: 0 } => Point { x: -1, y: 0 },
+                    Point { x: -2, y: 0 } => Point { x: 1, y: 0 },
+                    Point { x: 0, y: 2 } => Point { x: 0, y: -1 },
+                    Point { x: 0, y: -2 } => Point { x: 0, y: 1 },
+                    Point { x: 2, y: 1 } => Point { x: -1, y: -1 },
+                    Point { x: -2, y: 1 } => Point { x: 1, y: -1 },
+                    Point { x: 2, y: -1 } => Point { x: -1, y: 1 },
+                    Point { x: -2, y: -1 } => Point { x: 1, y: 1 },
+                    Point { x: 1, y: 2 } => Point { x: -1, y: -1 },
+                    Point { x: 1, y: -2 } => Point { x: -1, y: 1 },
+                    Point { x: -1, y: 2 } => Point { x: 1, y: -1 },
+                    Point { x: -1, y: -2 } => Point { x: 1, y: 1 },
+                    Point { x: 2, y: 2 } => Point { x: -1, y: -1 },
+                    Point { x: -2, y: -2 } => Point { x: 1, y: 1 },
+                    Point { x: 2, y: -2 } => Point { x: -1, y: 1 },
+                    Point { x: -2, y: 2 } => Point { x: 1, y: -1 },
+                    _ => panic!("unsupported tail position: {:?}", diff),
+                };
+                let knot_mut = self.knots.get_mut(i).unwrap();
+                *knot_mut = delta + &knot;
+                //println!("i: {} diff: {:?} knot: {:?}", i, diff, *knot_mut);
+            }
         }
     }
 }
@@ -117,13 +156,35 @@ struct Move {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-struct Coordinate {
+struct Point {
     x: i32,
     y: i32,
 }
 
+impl ops::Add<&Point> for Point {
+    type Output = Point;
+
+    fn add(self, rhs: &Point) -> Point {
+        Point {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl ops::Sub<&Point> for Point {
+    type Output = Point;
+
+    fn sub(self, rhs: &Point) -> Point {
+        Point {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
 struct SparseGrid<T> {
-    cells: HashMap<Coordinate, T>,
+    cells: HashMap<Point, T>,
 }
 
 impl<T> SparseGrid<T> {
@@ -133,13 +194,13 @@ impl<T> SparseGrid<T> {
         }
     }
 
-    fn set(&mut self, coord: Coordinate, value: T) {
+    fn set(&mut self, coord: Point, value: T) {
         self.cells.insert(coord, value);
     }
     fn get(&self, x: i32, y: i32) -> Option<&T> {
-        self.cells.get(&Coordinate { x, y })
+        self.cells.get(&Point { x, y })
     }
-    fn iter(&self) -> impl Iterator<Item = (&Coordinate, &T)> {
+    fn iter(&self) -> impl Iterator<Item = (&Point, &T)> {
         self.cells.iter()
     }
 }
@@ -165,6 +226,19 @@ R 2";
     #[test]
     fn test_part2() {
         let p = Day09 {};
-        assert_eq!(p.part_two(INPUT), "todo");
+        assert_eq!(p.part_two(INPUT), "1");
+        assert_eq!(
+            p.part_two(
+                "R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20"
+            ),
+            "36"
+        );
     }
 }
