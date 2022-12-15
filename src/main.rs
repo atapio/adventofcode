@@ -8,6 +8,7 @@ use adventofcode::days::day07::Day07;
 use adventofcode::days::day08::Day08;
 use adventofcode::days::day09::Day09;
 use adventofcode::days::day10::Day10;
+use adventofcode::days::day13::Day13;
 use adventofcode::days::day14::Day14;
 use adventofcode::problem::Problem;
 
@@ -33,6 +34,7 @@ fn day_to_problem(day: u8) -> Option<Box<dyn Problem>> {
         8 => Some(Box::new(Day08 {})),
         9 => Some(Box::new(Day09 {})),
         10 => Some(Box::new(Day10 {})),
+        13 => Some(Box::new(Day13 {})),
         14 => Some(Box::new(Day14 {})),
         // ...
         _ => None,

@@ -1,12 +1,24 @@
+use std::cmp::Ordering;
+
 use crate::problem::Problem;
-use std::{collections::HashMap, ops};
+use itertools::Itertools;
+use serde_json::Value;
 
 pub struct Day13 {}
 
 impl Problem for Day13 {
     fn part_one(&self, input: &str) -> String {
-        let grid = Self::parse(input);
-        let count = grid.iter().count();
+        let pairs = Self::parse(input);
+
+        let count = pairs.iter().fold(0, |total, pair| {
+            //println!("{:?}", pair);
+            match right_order(&pair.left, &pair.right) {
+                Some(true) => total + pair.n,
+
+                _ => total,
+            }
+        });
+
         format!("{}", count)
     }
 
@@ -16,89 +28,121 @@ impl Problem for Day13 {
 }
 
 impl Day13 {
-    fn parse(input: &str) -> SparseGrid<u8> {
-        SparseGrid::<u8>::new()
+    fn parse(input: &str) -> Vec<Pair> {
+        let pairs = input
+            .lines()
+            .chunks(3)
+            .into_iter()
+            .enumerate()
+            .map(|(i, mut chunks)| {
+                //let parsed_left = json!(chunks.next().unwrap());
+                let parsed_left = serde_json::from_str(chunks.next().unwrap()).unwrap();
+                let parsed_right = serde_json::from_str(chunks.next().unwrap()).unwrap();
+
+                Pair {
+                    n: i + 1,
+                    left: parsed_left,
+                    right: parsed_right,
+                }
+            })
+            .collect();
+
+        pairs
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-struct Point {
-    x: i32,
-    y: i32,
+#[derive(Debug)]
+struct Pair {
+    n: usize,
+    left: serde_json::Value,
+    right: serde_json::Value,
 }
 
-impl ops::Add<&Point> for Point {
-    type Output = Point;
-
-    fn add(self, rhs: &Point) -> Point {
-        Point {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
-    }
-}
-
-impl ops::Sub<&Point> for Point {
-    type Output = Point;
-
-    fn sub(self, rhs: &Point) -> Point {
-        Point {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-        }
-    }
-}
-
-struct SparseGrid<T> {
-    cells: HashMap<Point, T>,
-}
-
-impl<T> SparseGrid<T> {
-    fn new() -> SparseGrid<T> {
-        SparseGrid {
-            cells: HashMap::new(),
-        }
+fn right_order(left: &serde_json::Value, right: &serde_json::Value) -> Option<bool> {
+    //println!("{:?} {:?}", left, right);
+    // both values integers
+    if let (Value::Number(left), Value::Number(right)) = (left, right) {
+        return match left.as_u64().unwrap().cmp(&right.as_u64().unwrap()) {
+            Ordering::Less => Some(true),
+            Ordering::Greater => Some(false),
+            Ordering::Equal => None,
+        };
     }
 
-    fn set(&mut self, p: Point, value: T) {
-        self.cells.insert(coord, value);
-    }
+    // both values lists
+    if let (Value::Array(left), Value::Array(right)) = (left, right) {
+        let mut left_iter = left.iter();
+        let mut right_iter = right.iter();
 
-    fn get(&self, p: &Point) -> Option<&T> {
-        self.cells.get(p)
-    }
-    fn iter(&self) -> impl Iterator<Item = (&Point, &T)> {
-        self.cells.iter()
-    }
+        loop {
+            let left = left_iter.next();
+            let right = right_iter.next();
 
-    fn draw_line(&mut self, start: Point, end: Point, value: T) {
-        let mut p = start;
-        while p != end {
-            self.set(p, value);
-            if p.x < end.x {
-                p.x += 1;
-            } else if p.x > end.x {
-                p.x -= 1;
-            } else if p.y < end.y {
-                p.y += 1;
-            } else if p.y > end.y {
-                p.y -= 1;
+            if left.is_none() && right.is_none() {
+                return None;
+            }
+
+            if left.is_none() {
+                return Some(true);
+            }
+
+            if right.is_none() {
+                return Some(false);
+            }
+
+            let left = left.unwrap();
+            let right = right.unwrap();
+
+            if let Some(order) = right_order(left, right) {
+                return Some(order);
             }
         }
-        self.set(end, value);
     }
+
+    // exactly one value is an integer
+    if let (Value::Number(left), _) = (left, right) {
+        let l = serde_json::json!([left.as_u64().unwrap()]);
+        return right_order(&l, right);
+    }
+    if let (_, Value::Number(right)) = (left, right) {
+        let r = serde_json::json!([right.as_u64().unwrap()]);
+        return right_order(left, &r);
+    }
+
+    panic!("Unexpected values: {:?} {:?}", left, right);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    const INPUT: &str = "498,4 -> 498,6 -> 496,6
-503,4 -> 502,4 -> 502,9 -> 494,9";
+    const INPUT: &str = "[1,1,3,1,1]
+[1,1,5,1,1]
+
+[[1],[2,3,4]]
+[[1],4]
+
+[9]
+[[8,7,6]]
+
+[[4,4],4,4]
+[[4,4],4,4,4]
+
+[7,7,7,7]
+[7,7,7]
+
+[]
+[3]
+
+[[[]]]
+[[]]
+
+[1,[2,[3,[4,[5,6,7]]]],8,9]
+[1,[2,[3,[4,[5,6,0]]]],8,9]";
 
     #[test]
     fn test_part1() {
         let p = Day13 {};
-        assert_eq!(p.part_one(INPUT), "todo");
+        assert_eq!(p.part_one(INPUT), "13");
     }
 
     #[test]
