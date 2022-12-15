@@ -23,7 +23,45 @@ impl Problem for Day13 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let mut pairs = Self::parse(input);
+        let dividers = Self::parse(
+            "[[2]]
+[[6]]",
+        );
+        let divider_1 = Packet {
+            value: dividers[0].left.clone(),
+        };
+        let divider_2 = Packet {
+            value: dividers[0].right.clone(),
+        };
+
+        pairs.extend(dividers);
+        let mut packets: Vec<Packet> = pairs
+            .iter()
+            .map(|p| {
+                vec![
+                    Packet {
+                        value: p.left.clone(),
+                    },
+                    Packet {
+                        value: p.right.clone(),
+                    },
+                ]
+            })
+            .flatten()
+            .collect();
+
+        packets.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
+
+        let decoder = packets
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| **p == divider_1 || **p == divider_2)
+            .fold(1, |total, (i, _)| {
+                return total * (i + 1);
+            });
+
+        format!("{}", decoder)
     }
 }
 
@@ -56,6 +94,21 @@ struct Pair {
     n: usize,
     left: serde_json::Value,
     right: serde_json::Value,
+}
+
+#[derive(Debug, PartialEq)]
+struct Packet {
+    value: serde_json::Value,
+}
+
+impl PartialOrd for Packet {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match right_order(&self.value, &other.value) {
+            Some(true) => Some(Ordering::Less),
+            Some(false) => Some(Ordering::Greater),
+            None => None,
+        }
+    }
 }
 
 fn right_order(left: &serde_json::Value, right: &serde_json::Value) -> Option<bool> {
@@ -148,6 +201,7 @@ mod tests {
     #[test]
     fn test_part2() {
         let p = Day13 {};
-        assert_eq!(p.part_two(INPUT), "todo");
+        assert_eq!(p.part_two(INPUT), "140");
+
     }
 }
