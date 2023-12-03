@@ -1,2 +1,3 @@
-pub mod days;
 pub mod problem;
+pub mod y2022;
+pub mod y2023;
