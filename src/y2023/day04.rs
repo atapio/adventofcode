@@ -21,13 +21,25 @@ impl Problem for Day04 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        let cards = Day04::parse(input).expect("Failed to parse cards");
+        let mut cards = Day04::parse(input).expect("Failed to parse cards");
         //println!("cards {:?}", cards);
-        let mut total = 0;
-        for card in cards {
-            println!("{:?}", card);
-            total += card.points();
+        for i in 0..cards.len() {
+            let card = &cards[i];
+            let matches = card.matches();
+            let copies = card.copies;
+
+            for j in 0..(matches as usize) {
+                if i + j + 1 >= cards.len() {
+                    break;
+                }
+                cards[i + j + 1].copies += copies;
+            }
         }
+        //println!("{:?}", cards);
+        let mut total = 0;
+        cards.iter().for_each(|c| {
+            total += c.copies;
+        });
         format!("{}", total)
     }
 }
@@ -59,6 +71,7 @@ fn card(input: &str) -> Result<Card, nom::Err<nom::error::Error<&str>>> {
 
         Card {
             id: card_number,
+            copies: 1,
             winning_numbers,
             numbers,
         }
@@ -76,6 +89,7 @@ fn numbers(input: &str) -> IResult<&str, Vec<i32>> {
 #[derive(Debug)]
 struct Card {
     id: i32,
+    copies: u32,
     winning_numbers: Vec<i32>,
     numbers: Vec<i32>,
 }
