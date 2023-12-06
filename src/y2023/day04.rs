@@ -21,7 +21,14 @@ impl Problem for Day04 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let cards = Day04::parse(input).expect("Failed to parse cards");
+        //println!("cards {:?}", cards);
+        let mut total = 0;
+        for card in cards {
+            println!("{:?}", card);
+            total += card.points();
+        }
+        format!("{}", total)
     }
 }
 
@@ -66,8 +73,7 @@ fn numbers(input: &str) -> IResult<&str, Vec<i32>> {
     separated_list1(space1, i32)(input)
 }
 
-#[derive(Debug, Display)]
-#[display("{id}")]
+#[derive(Debug)]
 struct Card {
     id: i32,
     winning_numbers: Vec<i32>,
@@ -76,16 +82,16 @@ struct Card {
 
 impl Card {
     fn points(&self) -> u32 {
-        let count = self
-            .winning_numbers
-            .iter()
-            .filter(|n| self.numbers.contains(n))
-            .count() as u32;
-
-        match count {
+        match self.matches() {
             0 => 0,
             i => 2u32.pow(i - 1),
         }
+    }
+    fn matches(&self) -> u32 {
+        self.winning_numbers
+            .iter()
+            .filter(|n| self.numbers.contains(n))
+            .count() as u32
     }
 }
 
@@ -109,6 +115,6 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
     #[test]
     fn test_part2() {
         let p = Day04 {};
-        assert_eq!(p.part_two(INPUT), "todo");
+        assert_eq!(p.part_two(INPUT), "30");
     }
 }
