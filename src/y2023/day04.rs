@@ -1,5 +1,3 @@
-use parse_display::Display;
-
 use nom::bytes::complete::tag;
 use nom::character::complete::space0;
 use nom::sequence::{delimited, pair, tuple};

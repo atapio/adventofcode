@@ -1,8 +1,6 @@
-use parse_display::Display;
-
 use nom::bytes::complete::tag;
-use nom::character::complete::{newline, space0};
-use nom::sequence::{delimited, pair, preceded, tuple};
+use nom::character::complete::newline;
+use nom::sequence::{delimited, pair};
 use nom::{character::complete::i32, character::complete::space1, multi::separated_list1, IResult};
 
 use crate::problem::Problem;
