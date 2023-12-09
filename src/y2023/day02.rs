@@ -25,7 +25,13 @@ impl Problem for Day02 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let games = Day02::parse(input).expect("Failed to parse games");
+        let mut sum = 0;
+        for game in games {
+            let subset = game.min_subset();
+            sum += subset.red * subset.green * subset.blue;
+        }
+        format!("{}", sum)
     }
 }
 
@@ -97,6 +103,26 @@ impl Game {
         }
         true
     }
+
+    fn min_subset(&self) -> Subset {
+        let mut min_subset = Subset {
+            red: 0,
+            green: 0,
+            blue: 0,
+        };
+        for subset in self.subsets.iter() {
+            if subset.red > min_subset.red {
+                min_subset.red = subset.red;
+            }
+            if subset.green > min_subset.green {
+                min_subset.green = subset.green;
+            }
+            if subset.blue > min_subset.blue {
+                min_subset.blue = subset.blue;
+            }
+        }
+        min_subset
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -131,6 +157,6 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
     #[test]
     fn test_part2() {
         let p = Day02 {};
-        assert_eq!(p.part_two(INPUT), "todo");
+        assert_eq!(p.part_two(INPUT), "2286");
     }
 }
