@@ -29,7 +29,28 @@ impl Problem for Day09 {
     }
 
     fn part_two(&self, input: &str) -> String {
-        format!("{}", "Part two not yet implemented.")
+        let mut histories = vec![];
+
+        for line in input.lines() {
+            if line.is_empty() {
+                continue;
+            }
+            let mut history = vec![];
+            for v in line.split(' ') {
+                history.push(v.parse::<i32>().expect("bad number"));
+            }
+            histories.push(history);
+        }
+        //println!("{:?}", histories);
+
+        let mut sum = 0;
+        for history in histories {
+            let mut rev_history: Vec<i32> = history.clone();
+            rev_history.reverse();
+            sum += next_value(&rev_history);
+        }
+
+        format!("{}", sum)
     }
 }
 
@@ -86,6 +107,6 @@ mod tests {
     #[test]
     fn test_part2() {
         let p = Day09 {};
-        assert_eq!(p.part_two(INPUT), "todo");
+        assert_eq!(p.part_two(INPUT), "2");
     }
 }
